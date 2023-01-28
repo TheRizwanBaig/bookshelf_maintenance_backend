@@ -8,7 +8,6 @@ const bookSchema = new mongoose.Schema({
     authorName: {
         type: String,
         required: true,
-        unique: true
     },
     publicationHouse: {
         type: String,
@@ -21,6 +20,16 @@ const bookSchema = new mongoose.Schema({
     publicationYear: {
         type: String,
         required: true
+    },
+    addBy:{
+        type: String,
+        required: true,
+    },
+    status: {
+        type: String,
+        enum: ['Plan to Read', 'Reading','Completed'],
+        required: true,
+        default: 'Plan to Read'
     },
     publicationDate: {
         type: Date,

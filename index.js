@@ -5,7 +5,8 @@ require("dotenv").config();
 
 var cors = require('cors');
 
-const user = require('./routes/user')
+const userRoute = require('./routes/user')
+const bookRoute = require('./routes/book')
 
 
 
@@ -15,17 +16,17 @@ app.use(bodyParser.json());
 app.use(cors());
 
 app.use(function (req, res, next) {
-  res.header('Access-Control-Allow-Origin', '*')
+  res.header('Access-Control-Allow-Origin', '*');
   res.setHeader(
-    'Access-Control-Allow-Methods',
-    'GET, POST, OPTIONS, PUT, PATCH, DELETE'
-  )
+      'Access-Control-Allow-Methods',
+      'GET, POST, OPTIONS, PUT, PATCH, DELETE'
+  );
   res.header(
-    'Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept'
-  )
-  next()
-})
+      "Access-Control-Allow-Headers",
+      "Origin, X-Requested-With, Content-Type, Accept"
+  );
+  next();
+});
 mongoose.set('strictQuery', false)
 
 mongoose
@@ -37,7 +38,8 @@ mongoose
   .catch(err => console.log(err))
 
 //Routes
-app.use('/api/user', user)
+app.use('/api/user', userRoute)
+app.use('/api/book', bookRoute)
 
 
   const port = process.env.PORT || 7000;

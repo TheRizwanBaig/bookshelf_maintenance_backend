@@ -8,13 +8,13 @@ const verifyToken = require('../middleware/verifyToken')
 const app = express()
 
 router.post('/addBook', (req, res) => {
-  if (!req.headers.token) {
+  if (!req.headers['authorization']) {
     return res.status(200).json({
       error: true,
       message: 'Access denied. User token not provided.'
     })
   }
-  verifyToken(req.headers.token, item => {
+  verifyToken(req.headers['authorization'], item => {
     const isValid = item.isValid
     const id = item._id
     const name = item.name

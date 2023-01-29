@@ -1,5 +1,6 @@
 const express = require('express')
 const User = require('../models/User')
+const bookModel = require('../models/Book')
 const router = require('express').Router()
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
@@ -7,7 +8,7 @@ const {
   validateUserLoginInput,
   validateUserRegisterInput
 } = require('../validation/userAuthValidation')
-
+const verifyToken = require('../middleware/verifyToken')
 const app = express()
 
 router.post('/signup', (req, res) => {
@@ -97,7 +98,7 @@ router.post('/login', (req, res) => {
           if (isMatch) {
             console.log('password match')
             const payload = {
-              id: user._id,
+              _id: user._id,
               email: user.email,
               name: user.name
             }
@@ -116,21 +117,25 @@ router.post('/login', (req, res) => {
                   })
                 } else {
                   console.log('login success')
-                  return res
-                    .status(200)
-                    .cookie('auth_token_usr', token, {
-                      httpOnly: true,
-                      secure: process.env.NODE_ENV == 'production'
-                    })
-                    .json({
-                      message: 'Login successful!',
-                      userData: {userID:user._id,email:user.email,name:user.name},
-                    })
-                  // res.send({
-                  //   message: "Login Successful",
-                  //   user: user,
-                  //   token: token,
-                  // });
+                  // return res
+                  //   .status(200)
+                  //   .cookie('auth_token_usr', token, {
+                  //     httpOnly: true,
+                  //     secure: process.env.NODE_ENV == 'production'
+                  //   })
+                  //   .json({
+                  //     message: 'Login successful!',
+                  //     userData: {userID:user._id,email:user.email,name:user.name},
+                  //   })
+                  res.send({
+                    message: 'Login Successful',
+                    userData: {
+                      userID: user._id,
+                      email: user.email,
+                      name: user.name
+                    },
+                    token: token
+                  })
                 }
               }
             )
@@ -138,7 +143,6 @@ router.post('/login', (req, res) => {
             return res.status(200).json({
               error: true,
               message: 'Incorrect password. Please retry.'
-              
             })
           }
         })
@@ -150,7 +154,32 @@ router.post('/login', (req, res) => {
 })
 router.get('/logout', async (req, res) => {
   return res.status(200).clearCookie('auth_token_usr').json({
-      message: 'Logout successful!'
+    message: 'Logout successful!'
+  })
+})
+router.delete('/delete', (req, res) => {
+  if (!req.headers['authorization']) {
+    return res.status(200).json({
+      error: true,
+      message: 'Access denied. User token not provided.'
+    })
+  }
+  verifyToken(req.headers['authorization'], async user => {
+    const { isValid, _id, name } = user
+
+    if (!isValid) {
+      return res.status(401).json({
+        error: true,
+        message: 'Access denied. Limited for users(s).'
+      })
+    } else {
+      await bookModel.deleteMany({ addBy: _id })
+      await User.deleteOne({ _id: _id })
+      return res.status(200).json({
+        error: false,
+        message: 'Account deleted successfully.'
+      })
+    }
   })
 })
 module.exports = router

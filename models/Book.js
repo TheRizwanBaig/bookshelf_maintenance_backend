@@ -5,6 +5,10 @@ const bookSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    picURL: {
+        type: String,
+        required: true
+    },
     authorName: {
         type: String,
         required: true,
@@ -27,9 +31,8 @@ const bookSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['Plan to Read', 'Reading','Completed'],
-        required: true,
-        default: 'Plan to Read'
+        enum: ['plan_to_read', 'reading','completed'],
+        default: 'plan_to_read'
     },
     publicationDate: {
         type: Date,

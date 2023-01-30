@@ -75,7 +75,7 @@ router.post('/getBooks', (req, res) => {
       let { title, sort } = req.body
       let filterCriteria = {}
       filterCirteria = !isEmpty(title)
-        ? (filterCriteria.title = { $in: title.split(',') })
+        ? (filterCriteria.title = { $regex: title, $options: 'i' })
         : filterCriteria
 
       sortCirteria = !isEmpty(sort) ? (sort = 'title') : sort
@@ -95,9 +95,10 @@ router.post('/getBooks', (req, res) => {
           return res.status(200).json(resp)
         })
         .catch(err => {
+          console.log(err)
           return res.status(200).json({
             error: true,
-            message: 'An unexpected error occurred while fetching books'
+            message: err
           })
         })
     }
@@ -154,6 +155,99 @@ router.post('/updateStatus', (req, res) => {
           }
         }
       )
+    }
+  })
+})
+router.post('/editBook', (req, res) => {
+  if (!req.headers['authorization']) {
+    return res.status(200).json({
+      error: true,
+      message: 'Access denied. User token not provided.'
+    })
+  }
+  verifyToken(req.headers['authorization'], item => {
+    const isValid = item.isValid
+    const id = item._id
+    const name = item.name
+    if (!isValid) {
+      return res.status(200).json({
+        error: true,
+        message: 'Access denied. Limited for users(s).'
+      })
+    } else {
+      if (!req.body._id) {
+        return res.status(200).json({
+          error: true,
+          message: 'Book object id is required.'
+        })
+      }
+      bookModel.findOneAndUpdate(
+        { _id: req.body._id },
+        {
+          title: req.body.title,
+          picURL: req.body.picURL,
+          authorName: req.body.authorName,
+          publicationHouse: req.body.publicationHouse,
+          genre: req.body.genre,
+          publicationYear: req.body.publicationYear,
+          addBy: id,
+          status: req.body.status,
+          publicationDate: Date.now()
+        },
+        { new: true },
+        (err, doc) => {
+          if (err) {
+            return res.status(200).json({
+              error: true,
+              message: 'An unexpected error occurred. Please try again later.'
+            })
+          } else if (!doc) {
+            return res.status(200).json({
+              error: true,
+              message: 'Book not found. Please recheck object.'
+            })
+          } else {
+            return res.status(200).json({
+              error: false,
+              message: 'Book updated successfully.',
+              data: doc
+            })
+          }
+        }
+      )
+    }
+  })
+})
+router.post('/deleteBook', (req, res) => {
+  if (!req.headers['authorization']) {
+    return res.status(200).json({
+      error: true,
+      message: 'Access denied. User token not provided.'
+    })
+  }
+  verifyToken(req.headers['authorization'],  user => {
+    const { isValid, _id, name } = user
+
+    if (!isValid) {
+      return res.status(401).json({
+        error: true,
+        message: 'Access denied. Limited for users(s).'
+      })
+    } else {
+       bookModel.deleteOne({ _id: req.body._id } ,(err,doc)=>{
+        if(err){
+          return res.status(200).json({
+            error: true,
+            message: err
+          })
+        }else if(doc){
+          return res.status(200).json({
+            error: false,
+            message: 'Book deleted successfully.'
+          })
+        }
+       })
+     
     }
   })
 })

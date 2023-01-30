@@ -30,7 +30,7 @@ router.post('/signup', (req, res) => {
   }
   User.findOne({ email: email }, (err, user) => {
     if (user) {
-      res.send({ message: 'User already registered' })
+      res.send({error:true, message: 'User already registered' })
     } else {
       const user = new User({
         name: name,
@@ -128,6 +128,7 @@ router.post('/login', (req, res) => {
                   //     userData: {userID:user._id,email:user.email,name:user.name},
                   //   })
                   res.send({
+                    error:false,
                     message: 'Login Successful',
                     userData: {
                       userID: user._id,
@@ -147,7 +148,7 @@ router.post('/login', (req, res) => {
           }
         })
       } else {
-        res.send({ message: 'Account not register' })
+        res.send({error:true, message: 'Account not register' })
       }
     }
   )
